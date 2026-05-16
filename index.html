@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Hospitalisations by Age Group</title>
+ 
+  <!-- CSS file inside css folder -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+ 
+  <h1>Hospitalisations by Age Group</h1>
+ 
+  <p>
+    Select the Excel file. This D3 pie chart shows total hospitalisations by age group.
+  </p>
+ 
+  <div class="upload-box">
+    <input type="file" id="excelFile" accept=".xlsx, .xls">
+  </div>
+ 
+  <div id="chart"></div>
+ 
+  <!-- D3 Library -->
+  <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+ 
+  <!-- SheetJS Library for Excel -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+ 
+  <!-- JavaScript file inside js folder -->
+  <script src="js/script.js"></script>
+ 
+</body>
+</html>
+ 
