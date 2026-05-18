@@ -28,9 +28,7 @@ document.getElementById("excelFile").addEventListener("change", function(event) 
       console.log("Raw Data:", rawData);
       console.log("Column Names:", Object.keys(rawData[0]));
 
-      // -------------------------------
-      // DATA FOR BAR CHART: YEARLY TOTAL
-      // -------------------------------
+      // Data for Bar Chart
       const yearCleanedData = rawData
         .map(function(row) {
           return {
@@ -67,9 +65,7 @@ document.getElementById("excelFile").addEventListener("change", function(event) 
 
       console.log("Final Yearly Data:", yearlyData);
 
-      // -------------------------------
-      // DATA FOR PIE CHART: AGE GROUP
-      // -------------------------------
+      // Data for pie chart:
       const ageCleanedData = rawData
         .map(function(row) {
           return {
@@ -124,9 +120,7 @@ document.getElementById("excelFile").addEventListener("change", function(event) 
 });
 
 
-// -------------------------------------
-// BAR CHART: Hospitalisations by Year
-// -------------------------------------
+// Bar Chart Hospitalizations per year:
 function drawBarChart(data) {
 
   const width = 900;
@@ -240,9 +234,7 @@ function drawBarChart(data) {
 }
 
 
-// -------------------------------------
-// PIE CHART: Hospitalisations by Age Group
-// -------------------------------------
+// Pie Chart: Hospitalizations by age group:
 function drawPieChart(data) {
 
   const width = 900;
