@@ -1,4 +1,3 @@
-// Wait until user chooses the Excel file
 document.getElementById("excelFile").addEventListener("change", function(event) {
 
   const file = event.target.files[0];
@@ -8,29 +7,28 @@ document.getElementById("excelFile").addEventListener("change", function(event) 
     return;
   }
 
+  document.getElementById("fileName").textContent = file.name;
+
   document.getElementById("chart").innerHTML =
-    "<p style='text-align:center; color:blue;'>Reading Excel file...</p>";
+    "<p class='loading-message'>Reading Excel file...</p>";
 
   const reader = new FileReader();
 
   reader.onload = function(e) {
     try {
-      // Read the Excel file
       const workbook = XLSX.read(e.target.result, { type: "binary" });
 
-      // Use the first sheet
       const sheetName = workbook.SheetNames[0];
       const worksheet = workbook.Sheets[sheetName];
 
-      // Convert Excel sheet to JSON
       const rawData = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
 
-      console.log("Raw Data:", rawData);
-      console.log("Column Names:", Object.keys(rawData[0]));
+      if (rawData.length === 0) {
+        document.getElementById("chart").innerHTML =
+          "<p class='error-message'>The Excel file is empty or could not be read.</p>";
+        return;
+      }
 
-      // -------------------------------
-      // DATA FOR BAR CHART: YEARLY TOTAL
-      // -------------------------------
       const yearCleanedData = rawData
         .map(function(row) {
           return {
@@ -65,11 +63,6 @@ document.getElementById("excelFile").addEventListener("change", function(event) 
         return a.year - b.year;
       });
 
-      console.log("Final Yearly Data:", yearlyData);
-
-      // -------------------------------
-      // DATA FOR PIE CHART: AGE GROUP
-      // -------------------------------
       const ageCleanedData = rawData
         .map(function(row) {
           return {
@@ -104,19 +97,17 @@ document.getElementById("excelFile").addEventListener("change", function(event) 
         return b.hospitalisations - a.hospitalisations;
       });
 
-      console.log("Final Age Group Data:", ageGroupData);
+      updateSummaryCards(rawData, yearlyData, yearCleanedData);
 
-      // Clear chart area
       d3.select("#chart").html("");
 
-      // Draw both charts
       drawBarChart(yearlyData);
       drawPieChart(ageGroupData);
 
     } catch (error) {
-      console.error("Error reading Excel:", error);
+      console.error(error);
       document.getElementById("chart").innerHTML =
-        "<p style='color:red; text-align:center;'>Error reading Excel file. Try downloading the Excel file again.</p>";
+        "<p class='error-message'>Error reading Excel file. Please check the file and try again.</p>";
     }
   };
 
@@ -124,16 +115,24 @@ document.getElementById("excelFile").addEventListener("change", function(event) 
 });
 
 
-// -------------------------------------
-// BAR CHART: Hospitalisations by Year
-// -------------------------------------
+function updateSummaryCards(rawData, yearlyData, yearCleanedData) {
+  const totalCases = d3.sum(yearCleanedData, function(d) {
+    return d.cases;
+  });
+
+  document.getElementById("totalRecords").textContent = d3.format(",")(rawData.length);
+  document.getElementById("totalCases").textContent = d3.format(",")(totalCases);
+  document.getElementById("yearsCovered").textContent = yearlyData.length;
+}
+
+
 function drawBarChart(data) {
 
   const width = 900;
   const height = 500;
 
   const margin = {
-    top: 60,
+    top: 50,
     right: 30,
     bottom: 70,
     left: 110
@@ -146,6 +145,10 @@ function drawBarChart(data) {
   barContainer.append("h2")
     .text("Hospitalisations by Calendar Year");
 
+  barContainer.append("p")
+    .attr("class", "chart-note")
+    .text("This bar chart shows the total number of hospitalisations grouped by calendar year.");
+
   const svg = barContainer
     .append("svg")
     .attr("width", width)
@@ -156,7 +159,7 @@ function drawBarChart(data) {
       return d.year;
     }))
     .range([margin.left, width - margin.right])
-    .padding(0.2);
+    .padding(0.25);
 
   const y = d3.scaleLinear()
     .domain([0, d3.max(data, function(d) {
@@ -165,7 +168,18 @@ function drawBarChart(data) {
     .nice()
     .range([height - margin.bottom, margin.top]);
 
-  // Bars
+  svg.append("g")
+    .attr("transform", "translate(" + margin.left + ",0)")
+    .call(
+      d3.axisLeft(y)
+        .tickSize(-(width - margin.left - margin.right))
+        .tickFormat("")
+    )
+    .selectAll("line")
+    .attr("stroke", "#dbe4f3");
+
+  svg.selectAll(".domain").remove();
+
   svg.selectAll(".bar")
     .data(data)
     .enter()
@@ -181,73 +195,60 @@ function drawBarChart(data) {
     .attr("height", function(d) {
       return y(0) - y(d.hospitalisations);
     })
-    .attr("fill", "steelblue");
+    .attr("rx", 8);
 
-  // Value labels
   svg.selectAll(".value-label")
     .data(data)
     .enter()
     .append("text")
+    .attr("class", "value-label")
     .attr("x", function(d) {
       return x(d.year) + x.bandwidth() / 2;
     })
     .attr("y", function(d) {
-      return y(d.hospitalisations) - 5;
+      return y(d.hospitalisations) - 8;
     })
     .attr("text-anchor", "middle")
-    .style("font-size", "11px")
-    .style("font-weight", "bold")
     .text(function(d) {
       return d3.format(",")(d.hospitalisations);
     });
 
-  // X axis
   svg.append("g")
     .attr("transform", "translate(0," + (height - margin.bottom) + ")")
-    .call(d3.axisBottom(x));
+    .call(d3.axisBottom(x))
+    .selectAll("text")
+    .style("font-size", "12px")
+    .style("fill", "#334155");
 
-  // Y axis
   svg.append("g")
     .attr("transform", "translate(" + margin.left + ",0)")
-    .call(d3.axisLeft(y).tickFormat(d3.format(",")));
+    .call(d3.axisLeft(y).tickFormat(d3.format(",")))
+    .selectAll("text")
+    .style("font-size", "12px")
+    .style("fill", "#334155");
 
-  // Chart title
   svg.append("text")
-    .attr("x", width / 2)
-    .attr("y", 30)
-    .attr("text-anchor", "middle")
-    .style("font-size", "20px")
-    .style("font-weight", "bold")
-    .style("fill", "#1f3c88")
-    .text("Sum of Hospitalisations by Calendar Year");
-
-  // X label
-  svg.append("text")
+    .attr("class", "axis-label")
     .attr("x", width / 2)
     .attr("y", height - 20)
     .attr("text-anchor", "middle")
-    .style("font-weight", "bold")
     .text("Calendar Year");
 
-  // Y label
   svg.append("text")
+    .attr("class", "axis-label")
     .attr("transform", "rotate(-90)")
     .attr("x", -height / 2)
     .attr("y", 25)
     .attr("text-anchor", "middle")
-    .style("font-weight", "bold")
     .text("Sum of Count of Cases");
 }
 
 
-// -------------------------------------
-// PIE CHART: Hospitalisations by Age Group
-// -------------------------------------
 function drawPieChart(data) {
 
   const width = 900;
   const height = 600;
-  const radius = 220;
+  const radius = 210;
 
   const pieContainer = d3.select("#chart")
     .append("div")
@@ -255,6 +256,10 @@ function drawPieChart(data) {
 
   pieContainer.append("h2")
     .text("Hospitalisations by Age Group");
+
+  pieContainer.append("p")
+    .attr("class", "chart-note")
+    .text("This donut chart shows the distribution of hospitalisations across different age groups.");
 
   const svg = pieContainer
     .append("svg")
@@ -276,11 +281,11 @@ function drawPieChart(data) {
     });
 
   const arc = d3.arc()
-    .innerRadius(0)
+    .innerRadius(85)
     .outerRadius(radius);
 
   const hoverArc = d3.arc()
-    .innerRadius(0)
+    .innerRadius(85)
     .outerRadius(radius + 10);
 
   const total = d3.sum(data, function(d) {
@@ -289,17 +294,8 @@ function drawPieChart(data) {
 
   const tooltip = d3.select("body")
     .append("div")
-    .style("position", "absolute")
-    .style("background", "white")
-    .style("border", "1px solid #999")
-    .style("padding", "10px")
-    .style("border-radius", "8px")
-    .style("box-shadow", "0 4px 12px rgba(0,0,0,0.2)")
-    .style("font-size", "13px")
-    .style("display", "none")
-    .style("pointer-events", "none");
+    .attr("class", "tooltip");
 
-  // Pie slices
   chartGroup.selectAll("path")
     .data(pie(data))
     .enter()
@@ -309,7 +305,7 @@ function drawPieChart(data) {
       return color(d.data.ageGroup);
     })
     .attr("stroke", "white")
-    .attr("stroke-width", 3)
+    .attr("stroke-width", 4)
     .on("mouseover", function(event, d) {
       d3.select(this)
         .transition()
@@ -338,8 +334,22 @@ function drawPieChart(data) {
       tooltip.style("display", "none");
     });
 
-  // Percentage labels
-  chartGroup.selectAll("text")
+  chartGroup.append("text")
+    .attr("text-anchor", "middle")
+    .attr("y", -5)
+    .style("font-size", "18px")
+    .style("font-weight", "bold")
+    .style("fill", "#123c69")
+    .text("Total");
+
+  chartGroup.append("text")
+    .attr("text-anchor", "middle")
+    .attr("y", 24)
+    .style("font-size", "16px")
+    .style("fill", "#334155")
+    .text(d3.format(",")(total));
+
+  chartGroup.selectAll(".pie-label")
     .data(pie(data))
     .enter()
     .append("text")
@@ -360,26 +370,6 @@ function drawPieChart(data) {
       return percent.toFixed(1) + "%";
     });
 
-  // Chart title
-  svg.append("text")
-    .attr("x", width / 2)
-    .attr("y", 35)
-    .attr("text-anchor", "middle")
-    .style("font-size", "22px")
-    .style("font-weight", "bold")
-    .style("fill", "#1f3c88")
-    .text("Hospitalisations by Age Group");
-
-  // Subtitle
-  svg.append("text")
-    .attr("x", width / 2)
-    .attr("y", 60)
-    .attr("text-anchor", "middle")
-    .style("font-size", "14px")
-    .style("fill", "#555")
-    .text("Sum of Count of Cases grouped by Age Group");
-
-  // Legend
   const legend = svg.selectAll(".legend")
     .data(data)
     .enter()
@@ -392,16 +382,16 @@ function drawPieChart(data) {
   legend.append("rect")
     .attr("width", 18)
     .attr("height", 18)
-    .attr("rx", 4)
+    .attr("rx", 5)
     .attr("fill", function(d) {
       return color(d.ageGroup);
     });
 
   legend.append("text")
-    .attr("x", 26)
+    .attr("x", 28)
     .attr("y", 14)
     .style("font-size", "13px")
-    .style("fill", "#333")
+    .style("fill", "#334155")
     .text(function(d) {
       return d.ageGroup + " - " + d3.format(",")(d.hospitalisations);
     });
