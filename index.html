@@ -2,34 +2,71 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Road Risk Stats</title>
- 
-  <!-- CSS file inside css folder -->
-  <link rel="stylesheet" href="css/style.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hospitalisations Dashboard</title>
+
+  <link rel="stylesheet" href="../css/style.css">
 </head>
 <body>
- 
-  <h1>Road User Risk Dashboard</h1>
- 
-  <p>
-    Select the Excel file
-  </p>
- 
-  <div class="upload-box">
-    <input type="file" id="excelFile" accept=".xlsx, .xls">
-  </div>
- 
-  <div id="chart"></div>
- 
-  <!-- D3 Library -->
+
+  <section class="hero-section">
+    <div class="container">
+      <div class="hero-card">
+        <div>
+          <p class="small-title">Interactive Health Data Dashboard</p>
+          <h1>Hospitalisations Dashboard</h1>
+          <p class="hero-text">
+            Upload the Excel dataset to explore hospitalisation trends by calendar year and age group.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <main class="container main-content">
+
+    <section class="upload-section">
+      <div>
+        <h2>Upload Excel File</h2>
+        <p>Select your hospitalisation Excel file to generate the dashboard visualisations.</p>
+      </div>
+
+      <div class="upload-area">
+        <label for="excelFile" class="upload-button">Choose Excel File</label>
+        <input type="file" id="excelFile" accept=".xlsx, .xls">
+        <p id="fileName">No file selected</p>
+      </div>
+    </section>
+
+    <section class="stats-grid">
+      <div class="stat-card">
+        <p>Total Records</p>
+        <h3 id="totalRecords">--</h3>
+      </div>
+
+      <div class="stat-card">
+        <p>Total Hospitalisations</p>
+        <h3 id="totalCases">--</h3>
+      </div>
+
+      <div class="stat-card">
+        <p>Years Covered</p>
+        <h3 id="yearsCovered">--</h3>
+      </div>
+    </section>
+
+    <section id="chart" class="chart-wrapper">
+      <div class="empty-box">
+        <h2>No data loaded yet</h2>
+        <p>Please upload the Excel file to generate the dashboard visualisations.</p>
+      </div>
+    </section>
+
+  </main>
+
   <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
- 
-  <!-- SheetJS Library for Excel -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
- 
-  <!-- JavaScript file inside js folder -->
-  <script src="js/script.js"></script>
- 
+  <script src="script.js"></script>
+
 </body>
 </html>
- 
