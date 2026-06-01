@@ -1,11 +1,11 @@
 document.addEventListener("DOMContentLoaded", function () {
 
-  // ─── COLUMN NAME CONSTANTS ───────────────────────────────────────────────
+  // COLUMN NAME CONSTANTS 
   const COL_YEAR     = "Calendar year";
   const COL_AGE      = "Age group";
   const COL_CASES    = "Count of cases";
 
-  // ─── FILE UPLOAD ─────────────────────────────────────────────────────────
+  // FILE UPLOAD
   document.getElementById("excelFile").addEventListener("change", function (event) {
     const file = event.target.files[0];
     if (!file) return;
@@ -27,7 +27,7 @@ document.addEventListener("DOMContentLoaded", function () {
           return;
         }
 
-        // ── Clean & type rows ──────────────────────────────────────────────
+        // Clean & type rows 
         const cleaned = rawData
           .map(function (row) {
             return {
@@ -45,7 +45,7 @@ document.addEventListener("DOMContentLoaded", function () {
           return;
         }
 
-        // ── Yearly aggregation ─────────────────────────────────────────────
+        //  Yearly aggregation 
         const yearMap = d3.rollups(
           cleaned,
           function (v) { return d3.sum(v, function (d) { return d.cases; }); },
@@ -54,7 +54,7 @@ document.addEventListener("DOMContentLoaded", function () {
           return { year: d[0], hospitalisations: d[1] };
         }).sort(function (a, b) { return a.year - b.year; });
 
-        // ── Age group aggregation ──────────────────────────────────────────
+        // Age group aggregation 
         const ageMap = d3.rollups(
           cleaned,
           function (v) { return d3.sum(v, function (d) { return d.cases; }); },
@@ -63,14 +63,14 @@ document.addEventListener("DOMContentLoaded", function () {
           return { ageGroup: d[0], hospitalisations: d[1] };
         }).sort(function (a, b) { return b.hospitalisations - a.hospitalisations; });
 
-        // ── Stats ──────────────────────────────────────────────────────────
+        // Stats 
         const fmt   = d3.format(",");
         const total = d3.sum(cleaned, function (d) { return d.cases; });
         document.getElementById("totalCases").textContent   = fmt(total);
         document.getElementById("yearsCovered").textContent = yearMap.length;
         document.getElementById("topAgeGroup").textContent  = ageMap.length ? ageMap[0].ageGroup : "—";
 
-        // ── Draw ───────────────────────────────────────────────────────────
+        // Draw 
         drawBarChart(yearMap);
         drawPieChart(ageMap);
 
@@ -83,14 +83,14 @@ document.addEventListener("DOMContentLoaded", function () {
     reader.readAsBinaryString(file);
   });
 
-  // ─── ERROR HELPER ────────────────────────────────────────────────────────
+  // ERROR HELPER 
   function showError(msg) {
     const html = "<p class='empty-state'>⚠️ " + msg + "</p>";
     document.getElementById("barChart").innerHTML = html;
     document.getElementById("pieChart").innerHTML = html;
   }
 
-  // ─── BAR CHART ───────────────────────────────────────────────────────────
+  // BAR CHART 
   function drawBarChart(data) {
     const container = document.getElementById("barChart");
     d3.select(container).html("");
@@ -204,7 +204,7 @@ document.addEventListener("DOMContentLoaded", function () {
       .text("Count of Cases");
   }
 
-  // ─── PIE / DONUT CHART ───────────────────────────────────────────────────
+  // PIE / DONUT CHART 
   function drawPieChart(data) {
     const container = document.getElementById("pieChart");
     d3.select(container).html("");
