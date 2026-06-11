@@ -12,7 +12,7 @@ let allData = [];
 
 // ─── AUTO-LOAD ON PAGE READY ─────────────────────────────────────────────────
 document.addEventListener("DOMContentLoaded", function () {
-  loadExcelFile("data/hospitalization.csv");
+  loadCSVFile("data/hospitalization.csv");
 
   // Filter change listeners
   [
@@ -34,26 +34,16 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 });
 
-// ─── FETCH & PARSE EXCEL ─────────────────────────────────────────────────────
-function loadExcelFile(path) {
-  fetch(path)
-    .then(function (response) {
-      if (!response.ok) {
-        throw new Error("Could not fetch file: " + response.status + " " + response.statusText);
-      }
-      return response.arrayBuffer();
-    })
-    .then(function (buffer) {
-      var workbook = XLSX.read(buffer, { type: "array" });
-      var sheet    = workbook.Sheets[workbook.SheetNames[0]];
-      var rawData  = XLSX.utils.sheet_to_json(sheet, { defval: "" });
-
+// ─── FETCH & PARSE CSV ───────────────────────────────────────────────────────
+function loadCSVFile(path) {
+  d3.csv(path)
+    .then(function (rawData) {
       if (!rawData.length) {
-        showError("The Excel file appears to be empty.");
+        showError("The CSV file appears to be empty.");
         return;
       }
 
-      // Clean and type every row
+      // Clean and type every row — d3.csv gives us strings, so coerce numbers
       allData = rawData
         .map(function (row) {
           return {
@@ -84,21 +74,18 @@ function loadExcelFile(path) {
     })
     .catch(function (err) {
       console.error(err);
-      showError("Could not load data/hospitalisations.xlsx — " + err.message);
+      showError("Could not load data/hospitalization.csv — " + err.message);
     });
 }
 
 // ─── POPULATE FILTER DROPDOWNS ───────────────────────────────────────────────
 function populateSelect(id, values) {
   var select = document.getElementById(id);
-  // Keep the first "All …" option, remove any old dynamic ones
-  while (select.options.length > 1) {
-    select.remove(1);
-  }
+  while (select.options.length > 1) { select.remove(1); }
   values.forEach(function (val) {
     if (!val && val !== 0) return;
     var opt = document.createElement("option");
-    opt.value    = val;
+    opt.value = val;
     opt.textContent = val;
     select.appendChild(opt);
   });
@@ -109,30 +96,12 @@ function populateFilters() {
     "yearFilter",
     [...new Set(allData.map(function (d) { return d.year; }))].sort(function (a, b) { return a - b; })
   );
-  populateSelect(
-    "ageFilter",
-    [...new Set(allData.map(function (d) { return d.ageGroup; }))]
-  );
-  populateSelect(
-    "sexFilter",
-    [...new Set(allData.map(function (d) { return d.sex; }))]
-  );
-  populateSelect(
-    "roadUserFilter",
-    [...new Set(allData.map(function (d) { return d.roadUser; }))]
-  );
-  populateSelect(
-    "remotenessFilter",
-    [...new Set(allData.map(function (d) { return d.remoteness; }))]
-  );
-  populateSelect(
-    "causeFilter",
-    [...new Set(allData.map(function (d) { return d.cause; }))]
-  );
-  populateSelect(
-    "counterpartyFilter",
-    [...new Set(allData.map(function (d) { return d.counterparty; }))]
-  );
+  populateSelect("ageFilter",         [...new Set(allData.map(function (d) { return d.ageGroup; }))]);
+  populateSelect("sexFilter",         [...new Set(allData.map(function (d) { return d.sex; }))]);
+  populateSelect("roadUserFilter",    [...new Set(allData.map(function (d) { return d.roadUser; }))]);
+  populateSelect("remotenessFilter",  [...new Set(allData.map(function (d) { return d.remoteness; }))]);
+  populateSelect("causeFilter",       [...new Set(allData.map(function (d) { return d.cause; }))]);
+  populateSelect("counterpartyFilter",[...new Set(allData.map(function (d) { return d.counterparty; }))]);
 }
 
 // ─── APPLY FILTERS & UPDATE DASHBOARD ────────────────────────────────────────
@@ -159,7 +128,6 @@ function applyFilters() {
 }
 
 function updateDashboard(filtered) {
-  // Yearly aggregation
   var yearlyData = d3.rollups(
     filtered,
     function (v) { return d3.sum(v, function (d) { return d.cases; }); },
@@ -168,7 +136,6 @@ function updateDashboard(filtered) {
   .map(function (d) { return { year: d[0], hospitalisations: d[1] }; })
   .sort(function (a, b) { return a.year - b.year; });
 
-  // Age group aggregation
   var ageData = d3.rollups(
     filtered,
     function (v) { return d3.sum(v, function (d) { return d.cases; }); },
@@ -177,13 +144,11 @@ function updateDashboard(filtered) {
   .map(function (d) { return { ageGroup: d[0], hospitalisations: d[1] }; })
   .sort(function (a, b) { return b.hospitalisations - a.hospitalisations; });
 
-  // Stat cards
   var total = d3.sum(filtered, function (d) { return d.cases; });
   document.getElementById("totalCases").textContent   = d3.format(",")(total);
   document.getElementById("yearsCovered").textContent = [...new Set(filtered.map(function (d) { return d.year; }))].length;
   document.getElementById("topAgeGroup").textContent  = ageData.length ? ageData[0].ageGroup : "—";
 
-  // Charts
   drawBarChart(yearlyData);
   drawPieChart(ageData);
 }
@@ -227,7 +192,6 @@ function drawBarChart(data) {
     .nice()
     .range([height - margin.bottom, margin.top]);
 
-  // Gridlines
   svg.append("g")
     .attr("transform", "translate(" + margin.left + ",0)")
     .call(
@@ -243,7 +207,6 @@ function drawBarChart(data) {
 
   var tooltip = d3.select("#tooltip");
 
-  // Bars
   svg.selectAll(".bar")
     .data(data)
     .enter()
@@ -263,7 +226,6 @@ function drawBarChart(data) {
     })
     .on("mouseout", function () { tooltip.style("display", "none"); });
 
-  // Value labels (only when bars are wide enough and dataset is small)
   if (x.bandwidth() > 28 && data.length <= 15) {
     svg.selectAll(".val-label")
       .data(data)
@@ -277,7 +239,6 @@ function drawBarChart(data) {
       .text(function (d) { return d3.format(",")(d.hospitalisations); });
   }
 
-  // X axis
   svg.append("g")
     .attr("transform", "translate(0," + (height - margin.bottom) + ")")
     .call(d3.axisBottom(x))
@@ -285,12 +246,10 @@ function drawBarChart(data) {
     .attr("transform", data.length > 12 ? "rotate(-40)" : "rotate(0)")
     .style("text-anchor", data.length > 12 ? "end" : "middle");
 
-  // Y axis
   svg.append("g")
     .attr("transform", "translate(" + margin.left + ",0)")
     .call(d3.axisLeft(y).tickFormat(d3.format(",")).ticks(6));
 
-  // Axis labels
   svg.append("text")
     .attr("x", width / 2)
     .attr("y", height - 10)
@@ -348,7 +307,6 @@ function drawPieChart(data) {
   var total    = d3.sum(data, function (d) { return d.hospitalisations; });
   var tooltip  = d3.select("#tooltip");
 
-  // Slices
   chartGroup.selectAll("path")
     .data(pie(data))
     .enter()
@@ -374,7 +332,6 @@ function drawPieChart(data) {
       tooltip.style("display", "none");
     });
 
-  // Percentage labels on slices
   chartGroup.selectAll(".slice-label")
     .data(pie(data))
     .enter()
@@ -390,7 +347,6 @@ function drawPieChart(data) {
       return pct >= 5 ? pct.toFixed(1) + "%" : "";
     });
 
-  // Centre label
   chartGroup.append("text")
     .attr("text-anchor", "middle")
     .attr("dy", "-0.3em")
@@ -406,7 +362,6 @@ function drawPieChart(data) {
     .style("fill", "#e6eaf4")
     .text(d3.format(",")(total));
 
-  // Legend
   var legendX       = cx + radius + 40;
   var legendSpacing = 28;
   var maxItems      = Math.floor((height - 40) / legendSpacing);
