@@ -23,64 +23,54 @@
 
   <main>
 
-    <!-- Stat cards -->
-    <section class="stats-row">
-      <div class="stat-card">
-        <div class="stat-icon">🏥</div>
-        <div class="stat-body">
-          <div class="stat-value" id="totalCases">—</div>
-          <div class="stat-label">Total Hospitalisations</div>
-        </div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon">📅</div>
-        <div class="stat-body">
-          <div class="stat-value" id="yearsCovered">—</div>
-          <div class="stat-label">Years Covered</div>
-        </div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon">📌</div>
-        <div class="stat-body">
-          <div class="stat-value" id="topAgeGroup">—</div>
-          <div class="stat-label">Most Affected Age Group</div>
-        </div>
-      </div>
-    </section>
-
+    <!-- Filters FIRST -->
     <section class="filter-section">
       <h2>Filter Data</h2>
-      <div class="filters">
-        <select id="yearFilter"><option value="all">All Years</option></select>
-        <select id="ageFilter"><option value="all">All Age Groups</option></select>
-        <select id="sexFilter"><option value="all">All Sexes</option></select>
-        <select id="roadUserFilter"><option value="all">All Road Users</option></select>
-        <select id="remotenessFilter"><option value="all">All Remoteness Areas</option></select>
-        <select id="causeFilter"><option value="all">All Causes</option></select>
-        <select id="counterpartyFilter"><option value="all">All Counterparties</option></select>
-      </div>
+      <div class="filters" id="filtersContainer"></div>
       <button id="resetFilters" class="reset-button">Reset Filters</button>
+    </section>
+
+    <!-- Stat cards -->
+    <section class="stats-row">
+      <div class="stat-card stat-card--blue">
+        <div class="stat-body">
+          <div class="stat-value" id="totalCases">—</div>
+          <div class="stat-label">Total Injuries</div>
+        </div>
+      </div>
+      <div class="stat-card stat-card--green">
+        <div class="stat-body">
+          <div class="stat-value" id="avgPerYear">—</div>
+          <div class="stat-label">Average Injuries per Year</div>
+        </div>
+      </div>
+      <div class="stat-card stat-card--purple">
+        <div class="stat-body">
+          <div class="stat-value" id="topRoadUser">—</div>
+          <div class="stat-label">Most Affected Road User Group</div>
+        </div>
+      </div>
     </section>
 
     <!-- Charts -->
     <section class="charts-grid">
-      <div class="chart-card full-width" id="barChartContainer">
-        <h2>Hospitalisations by Calendar Year</h2>
-        <div id="barChart">
-          <p class="empty-state">Loading…</p>
-        </div>
+      <div class="chart-card full-width" id="lineChartContainer">
+        <h2>Injury Trend Over Time</h2>
+        <div id="lineChart"><p class="empty-state">Loading…</p></div>
       </div>
-      <div class="chart-card full-width" id="pieChartContainer">
-        <h2>Hospitalisations by Age Group</h2>
-        <div id="pieChart">
-          <p class="empty-state">Loading…</p>
-        </div>
+      <div class="chart-card full-width" id="roadUserChartContainer">
+        <h2>Injuries by Road User Type</h2>
+        <div id="roadUserChart"><p class="empty-state">Loading…</p></div>
+      </div>
+      <div class="chart-card full-width" id="ageChartContainer">
+        <h2>Injuries by Age Group</h2>
+        <div id="ageChart"><p class="empty-state">Loading…</p></div>
       </div>
     </section>
 
   </main>
 
-  <div id="tooltip" style="display:none;position:fixed;pointer-events:none;background:#1c2333;color:#e6eaf4;padding:10px 14px;border-radius:8px;font-size:13px;line-height:1.6;z-index:999;box-shadow:0 4px 20px rgba(0,0,0,0.4);"></div>
+  <div id="tooltip" style="display:none;position:fixed;pointer-events:none;"></div>
 
   <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
   <script src="js/script.js"></script>
