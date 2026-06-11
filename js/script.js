@@ -12,7 +12,7 @@ let allData = [];
 
 // ─── AUTO-LOAD ON PAGE READY ─────────────────────────────────────────────────
 document.addEventListener("DOMContentLoaded", function () {
-  loadExcelFile("data/hospitalisations.xlsx");
+  loadExcelFile("data/hospitalization.csv");
 
   // Filter change listeners
   [
