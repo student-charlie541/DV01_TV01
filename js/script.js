@@ -43,7 +43,11 @@ function loadCSVFile(path) {
         return;
       }
 
-      // Clean and type every row — d3.csv gives us strings, so coerce numbers
+      // Log actual column names from CSV so mismatches are visible in console
+      console.log("CSV loaded. Row count:", rawData.length);
+      console.log("Columns found:", Object.keys(rawData[0]));
+      console.log("First row sample:", rawData[0]);
+
       allData = rawData
         .map(function (row) {
           return {
@@ -61,8 +65,11 @@ function loadCSVFile(path) {
           return !isNaN(d.year) && d.year > 0 && d.ageGroup !== "" && d.cases > 0;
         });
 
+      console.log("Rows after filtering:", allData.length);
+      if (allData.length > 0) console.log("Sample parsed row:", allData[0]);
+
       if (!allData.length) {
-        showError("No valid rows found. Check that the column names match exactly.");
+        showError("No valid rows found — open browser console (F12) and check 'Columns found' to verify CSV headers match exactly.");
         return;
       }
 
@@ -73,8 +80,8 @@ function loadCSVFile(path) {
       applyFilters();
     })
     .catch(function (err) {
-      console.error(err);
-      showError("Could not load data/hospitalization.csv — " + err.message);
+      console.error("CSV fetch error:", err);
+      showError("Could not load the CSV — make sure 'data/hospitalization.csv' exists and you are using Live Server, not opening the file directly.");
     });
 }
 
