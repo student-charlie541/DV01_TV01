@@ -1,11 +1,10 @@
 document.addEventListener("DOMContentLoaded", function () {
 
-  // COLUMN NAME CONSTANTS 
   const COL_YEAR     = "Calendar year";
   const COL_AGE      = "Age group";
   const COL_CASES    = "Count of cases";
 
-  // FILE UPLOAD
+  // ─── FILE UPLOAD ─────────────────────────────────────────────────────────
   document.getElementById("excelFile").addEventListener("change", function (event) {
     const file = event.target.files[0];
     if (!file) return;
@@ -27,7 +26,7 @@ document.addEventListener("DOMContentLoaded", function () {
           return;
         }
 
-        // Clean & type rows 
+        // ── Clean & type rows ──────────────────────────────────────────────
         const cleaned = rawData
           .map(function (row) {
             return {
@@ -45,7 +44,7 @@ document.addEventListener("DOMContentLoaded", function () {
           return;
         }
 
-        //  Yearly aggregation 
+        // ── Yearly aggregation ─────────────────────────────────────────────
         const yearMap = d3.rollups(
           cleaned,
           function (v) { return d3.sum(v, function (d) { return d.cases; }); },
@@ -54,7 +53,7 @@ document.addEventListener("DOMContentLoaded", function () {
           return { year: d[0], hospitalisations: d[1] };
         }).sort(function (a, b) { return a.year - b.year; });
 
-        // Age group aggregation 
+        // ── Age group aggregation ──────────────────────────────────────────
         const ageMap = d3.rollups(
           cleaned,
           function (v) { return d3.sum(v, function (d) { return d.cases; }); },
@@ -63,14 +62,14 @@ document.addEventListener("DOMContentLoaded", function () {
           return { ageGroup: d[0], hospitalisations: d[1] };
         }).sort(function (a, b) { return b.hospitalisations - a.hospitalisations; });
 
-        // Stats 
+        // ── Stats ──────────────────────────────────────────────────────────
         const fmt   = d3.format(",");
         const total = d3.sum(cleaned, function (d) { return d.cases; });
         document.getElementById("totalCases").textContent   = fmt(total);
         document.getElementById("yearsCovered").textContent = yearMap.length;
         document.getElementById("topAgeGroup").textContent  = ageMap.length ? ageMap[0].ageGroup : "—";
 
-        // Draw 
+        // ── Draw ───────────────────────────────────────────────────────────
         drawBarChart(yearMap);
         drawPieChart(ageMap);
 
@@ -83,14 +82,14 @@ document.addEventListener("DOMContentLoaded", function () {
     reader.readAsBinaryString(file);
   });
 
-  // ERROR HELPER 
+  // ─── ERROR HELPER ────────────────────────────────────────────────────────
   function showError(msg) {
     const html = "<p class='empty-state'>⚠️ " + msg + "</p>";
     document.getElementById("barChart").innerHTML = html;
     document.getElementById("pieChart").innerHTML = html;
   }
 
-  // BAR CHART 
+  // ─── BAR CHART ───────────────────────────────────────────────────────────
   function drawBarChart(data) {
     const container = document.getElementById("barChart");
     d3.select(container).html("");
@@ -204,7 +203,7 @@ document.addEventListener("DOMContentLoaded", function () {
       .text("Count of Cases");
   }
 
-  // PIE / DONUT CHART 
+  // ─── PIE / DONUT CHART ───────────────────────────────────────────────────
   function drawPieChart(data) {
     const container = document.getElementById("pieChart");
     d3.select(container).html("");
@@ -333,4 +332,191 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
 });
+const COL_YEAR = "Calendar year";
+const COL_AGE = "Age group";
+const COL_CASES = "Count of cases";
+const COL_SEX = "Sex";
+const COL_ROADUSER = "Road user";
+const COL_REMOTE = "ABS remoteness area";
+const COL_CAUSE = "Cause of injury";
+const COL_COUNTERPARTY = "Counterparty";
 
+let allData = [];
+const cleaned = rawData
+.map(row => ({
+    year: Number(row[COL_YEAR]),
+    ageGroup: String(row[COL_AGE] || "").trim(),
+    sex: String(row[COL_SEX] || "").trim(),
+    roadUser: String(row[COL_ROADUSER] || "").trim(),
+    remoteness: String(row[COL_REMOTE] || "").trim(),
+    cause: String(row[COL_CAUSE] || "").trim(),
+    counterparty: String(row[COL_COUNTERPARTY] || "").trim(),
+    cases: Number(row[COL_CASES]) || 0
+}))
+.filter(d =>
+    !isNaN(d.year) &&
+    d.ageGroup &&
+    d.cases > 0
+);
+allData = cleaned;
+
+populateFilters();
+applyFilters();
+function populateSelect(id, values) {
+
+    const select = document.getElementById(id);
+
+    select.innerHTML =
+        '<option value="all">All</option>';
+
+    values.forEach(value => {
+
+        if (!value) return;
+
+        const option =
+            document.createElement("option");
+
+        option.value = value;
+        option.textContent = value;
+
+        select.appendChild(option);
+    });
+}
+function populateFilters() {
+
+    populateSelect(
+        "yearFilter",
+        [...new Set(allData.map(d => d.year))]
+            .sort((a,b)=>a-b)
+    );
+
+    populateSelect(
+        "ageFilter",
+        [...new Set(allData.map(d => d.ageGroup))]
+    );
+
+    populateSelect(
+        "sexFilter",
+        [...new Set(allData.map(d => d.sex))]
+    );
+
+    populateSelect(
+        "roadUserFilter",
+        [...new Set(allData.map(d => d.roadUser))]
+    );
+
+    populateSelect(
+        "remotenessFilter",
+        [...new Set(allData.map(d => d.remoteness))]
+    );
+
+    populateSelect(
+        "causeFilter",
+        [...new Set(allData.map(d => d.cause))]
+    );
+
+    populateSelect(
+        "counterpartyFilter",
+        [...new Set(allData.map(d => d.counterparty))]
+    );
+}
+function applyFilters() {
+
+    const year =
+        document.getElementById("yearFilter").value;
+
+    const age =
+        document.getElementById("ageFilter").value;
+
+    const sex =
+        document.getElementById("sexFilter").value;
+
+    const roadUser =
+        document.getElementById("roadUserFilter").value;
+
+    const remoteness =
+        document.getElementById("remotenessFilter").value;
+
+    const cause =
+        document.getElementById("causeFilter").value;
+
+    const counterparty =
+        document.getElementById("counterpartyFilter").value;
+
+    const filtered = allData.filter(d =>
+
+        (year === "all" || d.year == year) &&
+        (age === "all" || d.ageGroup === age) &&
+        (sex === "all" || d.sex === sex) &&
+        (roadUser === "all" || d.roadUser === roadUser) &&
+        (remoteness === "all" || d.remoteness === remoteness) &&
+        (cause === "all" || d.cause === cause) &&
+        (counterparty === "all" || d.counterparty === counterparty)
+
+    );
+
+    updateDashboard(filtered);
+}
+function updateDashboard(filtered) {
+
+    const yearlyData = d3.rollups(
+        filtered,
+        v => d3.sum(v,d=>d.cases),
+        d => d.year
+    )
+    .map(d => ({
+        year:d[0],
+        hospitalisations:d[1]
+    }))
+    .sort((a,b)=>a.year-b.year);
+
+    const ageData = d3.rollups(
+        filtered,
+        v => d3.sum(v,d=>d.cases),
+        d => d.ageGroup
+    )
+    .map(d => ({
+        ageGroup:d[0],
+        hospitalisations:d[1]
+    }))
+    .sort((a,b)=>b.hospitalisations-a.hospitalisations);
+
+    drawBarChart(yearlyData);
+    drawPieChart(ageData);
+
+    const total =
+        d3.sum(filtered,d=>d.cases);
+
+    document.getElementById("totalCases")
+        .textContent =
+        d3.format(",")(total);
+
+    document.getElementById("yearsCovered")
+        .textContent =
+        [...new Set(filtered.map(d=>d.year))]
+        .length;
+
+    document.getElementById("topAgeGroup")
+        .textContent =
+        ageData.length
+        ? ageData[0].ageGroup
+        : "—";
+}
+[
+"yearFilter",
+"ageFilter",
+"sexFilter",
+"roadUserFilter",
+"remotenessFilter",
+"causeFilter",
+"counterpartyFilter"
+].forEach(id => {
+
+    document
+      .getElementById(id)
+      .addEventListener(
+        "change",
+        applyFilters
+      );
+
+});
