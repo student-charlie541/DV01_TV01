@@ -68,7 +68,7 @@ header {
   border-color: rgba(220,38,38,0.5);
 }
 
-/* ─── MAIN LAYOUT ────────────────────────────────────────────────────────── */
+/* MAIN LAYOUT */
 main {
   max-width: 1150px;
   margin: -30px auto 0;
@@ -78,7 +78,7 @@ main {
   gap: 24px;
 }
 
-/* ─── FILTER SECTION ─────────────────────────────────────────────────────── */
+/*  Filter section */
 .filter-section {
   background: white;
   padding: 28px;
@@ -116,7 +116,7 @@ main {
   background: #f0f6ff;
 }
 
-/* ─── CHECKBOX FILTER GROUPS ─────────────────────────────────────────────── */
+/* CHECKBOX FILTER GROUPS */
 .filter-group {
   background: #f8fbff;
   border: 1px solid #dce7f5;
@@ -165,7 +165,7 @@ main {
   flex-shrink: 0;
 }
 
-/* ─── STAT CARDS ─────────────────────────────────────────────────────────── */
+/* STAT CARDS  */
 .stats-row {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -201,7 +201,7 @@ main {
   color: #64748b;
 }
 
-/* ─── CHART CARDS ────────────────────────────────────────────────────────── */
+/* CHART CARDS */
 .charts-grid {
   display: flex;
   flex-direction: column;
@@ -244,7 +244,7 @@ svg text {
   padding: 60px 20px;
 }
 
-/* ─── TOOLTIP ────────────────────────────────────────────────────────────── */
+/*  TOOLTIP */
 #tooltip {
   position: fixed;
   pointer-events: none;
@@ -259,7 +259,7 @@ svg text {
   box-shadow: 0 12px 30px rgba(15, 23, 42, 0.18);
 }
 
-/* ─── RESPONSIVE ─────────────────────────────────────────────────────────── */
+/* RESPONSIVE */
 @media (max-width: 850px) {
   header {
     padding: 32px 20px 50px;
